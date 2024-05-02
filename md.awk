@@ -1,3 +1,5 @@
+#!/usr/bin/awk -f
+
 function l_trim(s) {
   sub(/^[[:space:]]+/, "", s)
   return s
