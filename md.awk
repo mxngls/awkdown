@@ -15,27 +15,26 @@ function trim(s) {
   return s
 }
 
-BEGIN { 
-  ATX_REGEX_START = "(^[[:space:]]{0,3}#{1,6}([[:space:]]+|$))"
-  ATX_REGEX_END   = "(([[:space:]]+#+)?[[:space:]]*$)"
-  ATX_REGEX_EMPTY = "(^#+[[:space:]]*#+$)"
+function parse_atx(s) {
+  match(trim(s),/^#+/) 
+
+  # Empty Heading | Start of Heading | End of Heading
+  gsub(/(^#+ *#+$)|(^ {0,3}#{1,6}( +|$))|(( +#+)? *$)/,"", s)
+
+  printf "<h%i>%s</h%i>\n", RLENGTH, s, RLENGTH
+}
+
+BEGIN {}
+
+/^ {0,3}#{1,6}( +|$)/{
+  parse_atx($0)
+  next
 }
 
 {
-  s = $0;
-  if(match(s, ATX_REGEX_START)) {
-
-    s = trim(s)
-
-    match(s,/^#+/) 
-
-    gsub(ATX_REGEX_EMPTY "|" ATX_REGEX_START "|" ATX_REGEX_END, "", s)
-
-    printf "<h%i>%s</h%i>\n", RLENGTH, s, RLENGTH
-  } else {
-    print $0
-  }
+  print $0
 }
+
 
 END {}
 
