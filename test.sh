@@ -11,7 +11,9 @@ main() {
   current="input"
 
   while IFS=$'\n' read -r line; do
-    if [[ "$line" == "---" ]]; then
+    if [[ "$line" =~ ^\[.*\]$ ]]; then
+      description="${line//[[\]]/}"
+    elif [[ "$line" == "---" ]]; then
       current="output"
     elif [[ "$current" == "input" ]]; then
       echo "$line" >> "$input"
@@ -21,7 +23,7 @@ main() {
       result="success"
 
       if ! cmp -s "$output" "$expected_output"; then
-        echo "FAIL"
+        printf "%s -> %s\n" "FAIL" "$description"
         echo "--- input"
         cat "$input"
         echo
@@ -34,7 +36,7 @@ main() {
         echo "---"
         result="fail"
       else
-        echo "SUCCESS"
+        printf "%s -> %s\n" "SUCCESS" "$description"
       fi
 
       rm "$input"

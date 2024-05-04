@@ -1,3 +1,4 @@
+[ATXHeadings]
 # foo
 ## foo
 ### foo
@@ -12,28 +13,34 @@
 <h5>foo</h5>
 <h6>foo</h6>
 
+[TooManyHashes]
 ####### foo
 ---
 ####### foo
 
+[MissingSpaceBeforeHash]
 #5 bolt
 #hashtag
 ---
 #5 bolt
 #hashtag
 
+[BackslashEscapesHashes]
 \## foo
 ---
 \## foo
 
-# foo *bar* \*baz\*
+[InlineContent]
+# foo *bar* \*bar\*
 ---
-<h1>foo *bar* \*baz\*</h1>
+<h1>foo *bar* \*bar\*</h1>
 
+[MultipleSpacesFollowingHash]
 #                  foo                     
 ---
 <h1>foo</h1>
 
+[SpacesPreceedingHash]
  ### foo
   ## foo
    # foo
@@ -42,34 +49,41 @@
 <h2>foo</h2>
 <h1>foo</h1>
 
+[SpacesFollowingContent]
 # foo     
 ---
 <h1>foo</h1>
 
+[HashesFollowingContent(1)]
 ## foo ##
   ###   bar    ###
 ---
 <h2>foo</h2>
 <h3>bar</h3>
 
+[HashesFollowingContent(2)]
 # foo ##################################
 ##### foo ##
 ---
 <h1>foo</h1>
 <h5>foo</h5>
 
+[SpacesFollowingHash]
 ### foo ###     
 ---
 <h3>foo</h3>
 
+[EndingWithText]
 ### foo ### b
 ---
 <h3>foo ### b</h3>
 
+[NoSpaceBeforeTrailingHash]
 # foo#
 ---
 <h1>foo#</h1>
 
+[TrailingHashesWithBackslash]
 ### foo \###
 ## foo #\##
 # foo \#
@@ -78,6 +92,7 @@
 <h2>foo #\##</h2>
 <h1>foo \#</h1>
 
+[MissingNewline(1)]
 ****
 ## foo
 ****
@@ -86,6 +101,7 @@
 <h2>foo</h2>
 ****
 
+[MissingNewline(2)]
 Foo bar
 # bar
 Bar foo
@@ -94,6 +110,7 @@ Foo bar
 <h1>bar</h1>
 Bar foo
 
+[EmptyHeading]
 ## 
 #
 ### ###
