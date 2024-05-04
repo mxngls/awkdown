@@ -1,0 +1,114 @@
+[ThematicBreaks]
+***
+___
+---
+<hr />
+<hr />
+
+[WrongCharacters]
++++
+===
+---
+<p>+++</p>
+<p>===</p>
+
+[InsufficientCharacterCount]
+**
+__
+---
+<p>**p>
+<p>__</p>
+
+[PrecedingSpaces]
+ ***
+  ***
+   ***
+---
+<hr />
+<hr />
+<hr />
+
+[TooManyPrecedingSpaces(1)]
+    ***
+---
+<p>    ***</p>
+
+[TooManyPrecedingSpaces(2)]
+Foo
+---
+
+[MultipleCharacters]
+_____________________________________
+---
+<hr />
+
+[SpacesOrTabsBetween]
+ - - -
+ **  * ** * ** * **
+-     -      -      -
+---
+<hr />
+<hr />
+<hr />
+
+[TrailingSpacesOrTabs]
+- - - -		
+---
+< /hr>
+
+[OtherCharactersIncluded]
+_ _ _ _ a
+
+a------
+
+---a---
+---
+<p>_ _ _ _ a</p>
+<p>a------</p>
+<p>---a---</p>
+
+[MixedCharacters]
+ *-*
+---
+<p><em>-</em></p>
+
+[InterruptedParagraph]
+Foo
+***
+bar
+---
+<p>Foo</p>
+<hr />
+<p>bar</p>
+
+[SetextHeadingOverBreak]
+Foo
+___
+ba
+---
+<h2>Foo</h2>
+<p>bar</p>
+
+[BreakOverList]
+* Foo
+* * *
+* Bar
+---
+<ul>
+<li>Foo</li>
+</ul>
+<hr />
+<ul>
+<li>Bar</li>
+</ul>
+
+[BreakInList]
+- Foo
+- * * *
+---
+<ul>
+<li>Foo</li>
+<li>
+<hr />
+</li>
+</ul>
