@@ -11,22 +11,27 @@ function r_trim(s) {
 }
 
 function trim(s) {
-  sub(/^[[:space:]]+|[[:space:]]+$/, "", s)
+  s = l_trim(s)
+  s = r_trim(s)
   return s
 }
 
 function parse_atx(s) {
-  match(trim(s),/^#+/) 
+  s = trim(s)
+  match(s,/^#+/) 
 
-  # Empty Heading | Start of Heading | End of Heading
-  gsub(/(^#+ *#+$)|(^ {0,3}#{1,6}( +|$))|(( +#+)? *$)/,"", s)
+  # start of heading
+  # end of heading
+  sub(/^#+[[:space:]]+/, "", s)
+  sub(/(([[:space:]]+#+)?[[:space:]]*$)/, "", s)
 
   printf "<h%i>%s</h%i>\n", RLENGTH, s, RLENGTH
 }
 
 BEGIN {}
 
-/^ {0,3}#{1,6}( +|$)/{
+# atx headings
+/^ {0,3}#{1,6}([[:space:]]+|$)/{
   parse_atx($0)
   next
 }
