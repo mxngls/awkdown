@@ -16,19 +16,20 @@
 [TooManyHashes]
 ####### foo
 ---
-####### foo
+<p>####### foo</p>
 
 [MissingSpaceBeforeHash]
 #5 bolt
+
 #hashtag
 ---
-#5 bolt
-#hashtag
+<p>#5 bolt</p>
+<p>#hashtag</p>
 
 [BackslashEscapesHashes]
 \## foo
 ---
-\## foo
+<p>\## foo</p>
 
 [InlineContent]
 # foo *bar* \*bar\*
@@ -97,18 +98,18 @@
 ## foo
 ****
 ---
-****
+<hr />
 <h2>foo</h2>
-****
+<hr />
 
 [MissingNewline(2)]
 Foo bar
 # bar
 Bar foo
 ---
-Foo bar
+<p>Foo bar</p>
 <h1>bar</h1>
-Bar foo
+<p>Bar foo</p>
 
 [EmptyHeading]
 ## 

@@ -28,20 +28,46 @@ function parse_atx(s) {
   printf "<h%i>%s</h%i>\n", RLENGTH, s, RLENGTH
 }
 
-BEGIN {}
+function pop_block() {
+  printf "<p>%s</p>\n", block;
+  block = ""
+}
+
+BEGIN {
+  block = ""
+}
 
 # atx headings
-/^ {0,3}#{1,6}([[:space:]]+|$)/{
+/^ {0,3}#{1,6}([[:blank:]]+|$)/{
+  if (block) pop_block()
+
   parse_atx($0)
   next
 }
 
-{
-  print $0
+# thematic breaks
+/^[[:blank:]]{0,3}((\*[*[:blank:]]{2,})|(-[-[:blank:]]{2,})|(_[_[:blank:]]{2,}))$/ {
+  if (block) pop_block()
+
+  print "<hr />"
+  next
+}
+
+# paragraphs
+$0 {
+  if (!block) block = block trim($0);
+  else block = block "\n" trim($0);
+}
+
+/^$/ {
+  pop_block()
+  next
 }
 
 
-END {}
+END {
+  if (block) pop_block()
+}
 
 # TODO
 #
