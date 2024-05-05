@@ -1,8 +1,12 @@
 [ValidSingleLine]
 Foo bar
-===
+=========
+
+Foo bar
+---------
 ---
 <h1>Foo bar</h1>
+<h2>Foo bar</h2>
 
 [ValidMultiLine]
 Foo
@@ -10,6 +14,6 @@ Foo
 ===
 ---
 <h1>Foo
- bar</h1>
+bar</h1>
 
 
