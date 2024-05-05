@@ -26,13 +26,10 @@ main() {
         printf "%s -> %s\n" "FAIL" "$description"
         echo "--- input"
         cat "$input"
-        echo
         echo "--- expected"
         cat "$expected_output"
-        echo
         echo "--- got"
         cat "$output"
-        echo
         echo "---"
         result="fail"
       else
