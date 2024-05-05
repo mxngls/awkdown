@@ -11,8 +11,7 @@ function r_trim(s) {
 }
 
 function trim(s) {
-  s = l_trim(s)
-  s = r_trim(s)
+  gsub(/^[[:space:]]+|[[:space:]]+$/, "", s)
   return s
 }
 

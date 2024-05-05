@@ -1,0 +1,15 @@
+[ValidSingleLine]
+Foo bar
+===
+---
+<h1>Foo bar</h1>
+
+[ValidMultiLine]
+Foo
+ bar
+===
+---
+<h1>Foo
+ bar</h1>
+
+
