@@ -1,17 +1,17 @@
 #!/usr/bin/awk -f
 
 function l_trim(s) {
-  sub(/^[[:space:]]+/, "", s)
+  sub(/^[[:blank:]]+/, "", s)
   return s
 }
 
 function r_trim(s) {
-  sub(/[[:space:]]+$/, "", s)
+  sub(/[[:blank:]]+$/, "", s)
   return s
 }
 
 function trim(s) {
-  gsub(/^[[:space:]]+|[[:space:]]+$/, "", s)
+  gsub(/^[[:blank:]]+|[[:blank:]]+$/, "", s)
   return s
 }
 
@@ -21,8 +21,8 @@ function parse_atx(s) {
 
   # start of heading
   # end of heading
-  sub(/^#+[[:space:]]+/, "", s)
-  sub(/(([[:space:]]+#+)?[[:space:]]*$)/, "", s)
+  sub(/^#+[[:blank:]]+/, "", s)
+  sub(/(([[:blank:]]+#+)?[[:blank:]]*$)/, "", s)
 
   printf "<h%i>%s</h%i>\n", RLENGTH, s, RLENGTH
 }
