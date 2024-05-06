@@ -39,13 +39,20 @@ function parse_setext(s) {
 }
 
 function pop_block() {
-  printf "<%s>%s</%s>\n", block, trim(text), block;
+  if (block == "code") printf "<pre><code>%s\n</code></pre>\n", trim(text);
+  else printf "<%s>%s</%s>\n", block, trim(text), block;
+
   block = "p"
   text = ""
 }
 
 function push_block(nblock) {
   block = nblock
+}
+
+function append_text(s, t) {
+  s = t ? trim(s) : s
+  text = text ? text "\n" s : s 
 }
 
 BEGIN {
@@ -75,15 +82,32 @@ text && /^[[:blank:]]{0,3}(-[-[:blank:]]+)|(=[=[:blank:]]+)/ {
   next
 }
 
-# paragraphs
-$0 {
-  if (!text) text = text trim($0);
-  else text = text "\n" trim($0);
-  next
+# indented code block
+/^[[:blank:]]{4,}/ {
+  if (block == "code" || text == "") {
+    sub(/^[[:blank:]]{4}/, "")
+    block = "code"
+    append_text($0)
+    next
+  }
 }
 
 /^$/ {
-  if (text) pop_block()
+  if (block == "code") append_text($0)
+  else if (text) pop_block();
+  next
+}
+
+# paragraphs
+$0 {
+  if (block == "code") {
+    pop_block()
+    block ="p"
+  } 
+
+  append_text($0, 1)
+
+  next
 }
 
 END {
