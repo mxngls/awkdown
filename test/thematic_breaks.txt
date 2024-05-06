@@ -4,6 +4,7 @@ ___
 ---
 <hr />
 <hr />
+[END]
 
 [WrongCharacters]
 +++
@@ -12,6 +13,7 @@ ___
 ---
 <p>+++</p>
 <p>===</p>
+[END]
 
 [InsufficientCharacterCount]
 **
@@ -20,6 +22,7 @@ __
 ---
 <p>**</p>
 <p>__</p>
+[END]
 
 [PrecedingSpaces]
  ***
@@ -29,6 +32,7 @@ __
 <hr />
 <hr />
 <hr />
+[END]
 
 [TooManyPrecedingSpaces(1)]
 Foo
@@ -36,11 +40,13 @@ Foo
 ---
 <p>Foo
 ****</p>
+[END]
 
 [MultipleCharacters]
 _____________________________________
 ---
 <hr />
+[END]
 
 [SpacesOrTabsBetween]
  - - -
@@ -50,11 +56,13 @@ _____________________________________
 <hr />
 <hr />
 <hr />
+[END]
 
 [TrailingSpacesOrTabs]
 - - - -		
 ---
 <hr />
+[END]
 
 [OtherCharactersIncluded]
 _ _ _ _ a
@@ -66,6 +74,7 @@ a------
 <p>_ _ _ _ a</p>
 <p>a------</p>
 <p>---a---</p>
+[END]
 
 [InterruptedParagraph]
 Foo
@@ -75,11 +84,13 @@ bar
 <p>Foo</p>
 <hr />
 <p>bar</p>
+[END]
 
 [MixedCharacters]
  *-*
 ---
 <p><em>-</em></p>
+[END]
 
 [SetextHeadingOverBreak]
 Foo
@@ -88,6 +99,7 @@ bar
 ---
 <h2>Foo</h2>
 <p>bar</p>
+[END]
 
 [BreakOverList]
 * Foo
@@ -101,6 +113,7 @@ bar
 <ul>
 <li>Bar</li>
 </ul>
+[END]
 
 [BreakInList]
 - Foo
@@ -112,9 +125,11 @@ bar
 <hr />
 </li>
 </ul>
+[END]
 
 [TooManyPrecedingSpaces(2)]
     ***
 ---
 <pre><code>***
 </code></pre>
+[END]

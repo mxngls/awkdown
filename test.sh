@@ -11,19 +11,13 @@ main() {
   current="input"
 
   while IFS=$'\n' read -r line; do
-    if [[ "$line" =~ ^\[.*\]$ ]]; then
-      description="${line//[[\]]/}"
-    elif [[ "$line" == "---" ]]; then
-      current="output"
-    elif [[ "$current" == "input" ]]; then
-      echo "$line" >> "$input"
-    elif [[ "$line" == "" ]]; then
+    if [[ "$line" == "[END]"  ]]; then
       awk -f md.awk "$input" >> "$output"
 
       result="success"
 
       if ! cmp -s "$output" "$expected_output"; then
-        printf "%s -> %s\n" "FAIL" "$description"
+        printf "\n%s -> %s\n" "FAIL" "$description"
         echo "--- input"
         cat "$input"
         echo "--- expected"
@@ -32,8 +26,6 @@ main() {
         cat "$output"
         echo "---"
         result="fail"
-      else
-        printf "%s -> %s\n" "SUCCESS" "$description"
       fi
 
       rm "$input"
@@ -45,10 +37,20 @@ main() {
       fi
 
       current="input"
+    elif [[ "$line" =~ ^\[.*\]$ ]]; then
+      description="${line//[[\]]/}"
+    elif [[ "$line" == "---" ]]; then
+      current="output"
+    elif [[ "$current" == "input" ]]; then
+      echo "$line" >> "$input"
+    elif [[ "$current" == "input" && "$line" == "" ]]; then
+      continue
     else
       echo "$line" >> "$expected_output"
     fi
   done
+
+  printf -- " -> All tests run sucessfull!\n"
 
 }
 

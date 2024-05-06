@@ -7,6 +7,7 @@ Foo bar
 ---
 <h1>Foo bar</h1>
 <h2>Foo bar</h2>
+[END]
 
 [ValidMultiLine]
 Foo
@@ -15,5 +16,5 @@ Foo
 ---
 <h1>Foo
 bar</h1>
-
+[END]
 

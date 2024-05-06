@@ -12,11 +12,13 @@
 <h4>foo</h4>
 <h5>foo</h5>
 <h6>foo</h6>
+[END]
 
 [TooManyHashes]
 ####### foo
 ---
 <p>####### foo</p>
+[END]
 
 [MissingSpaceBeforeHash]
 #5 bolt
@@ -25,21 +27,25 @@
 ---
 <p>#5 bolt</p>
 <p>#hashtag</p>
+[END]
 
 [BackslashEscapesHashes]
 \## foo
 ---
 <p>\## foo</p>
+[END]
 
 [InlineContent]
 # foo *bar* \*bar\*
 ---
 <h1>foo *bar* \*bar\*</h1>
+[END]
 
 [MultipleSpacesFollowingHash]
 #                  foo                     
 ---
 <h1>foo</h1>
+[END]
 
 [SpacesPreceedingHash]
  ### foo
@@ -49,11 +55,13 @@
 <h3>foo</h3>
 <h2>foo</h2>
 <h1>foo</h1>
+[END]
 
 [SpacesFollowingContent]
 # foo     
 ---
 <h1>foo</h1>
+[END]
 
 [HashesFollowingContent(1)]
 ## foo ##
@@ -61,6 +69,7 @@
 ---
 <h2>foo</h2>
 <h3>bar</h3>
+[END]
 
 [HashesFollowingContent(2)]
 # foo ##################################
@@ -68,21 +77,25 @@
 ---
 <h1>foo</h1>
 <h5>foo</h5>
+[END]
 
 [SpacesFollowingHash]
 ### foo ###     
 ---
 <h3>foo</h3>
+[END]
 
 [EndingWithText]
 ### foo ### b
 ---
 <h3>foo ### b</h3>
+[END]
 
 [NoSpaceBeforeTrailingHash]
 # foo#
 ---
 <h1>foo#</h1>
+[END]
 
 [TrailingHashesWithBackslash]
 ### foo \###
@@ -92,6 +105,7 @@
 <h3>foo \###</h3>
 <h2>foo #\##</h2>
 <h1>foo \#</h1>
+[END]
 
 [MissingNewline(1)]
 ****
@@ -101,6 +115,7 @@
 <hr />
 <h2>foo</h2>
 <hr />
+[END]
 
 [MissingNewline(2)]
 Foo bar
@@ -110,6 +125,7 @@ Bar foo
 <p>Foo bar</p>
 <h1>bar</h1>
 <p>Bar foo</p>
+[END]
 
 [EmptyHeading]
 ## 
@@ -119,3 +135,4 @@ Bar foo
 <h2></h2>
 <h1></h1>
 <h3></h3>
+[END]
