@@ -21,8 +21,10 @@ function parse_atx(s) {
 
   # start of heading
   # end of heading
+  # empty heading
   sub(/^#+[[:blank:]]+/, "", s)
   sub(/(([[:blank:]]+#+)?[[:blank:]]*$)/, "", s)
+  sub(/^#+$/, "", s)
 
   text = s
   push_block("h" RLENGTH)
