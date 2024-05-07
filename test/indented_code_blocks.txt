@@ -42,3 +42,39 @@ bar
 </code></pre>
 <p>bar</p>
 [END]
+
+[InterceptingIndentedCode]
+# Heading
+    foo
+Heading
+------
+    foo
+----
+---
+<h1>Heading</h1>
+<pre><code>foo
+</code></pre>
+<h2>Heading</h2>
+<pre><code>foo
+</code></pre>
+<hr />
+[END]
+
+[MoreThanFourSpaces]
+        foo
+    bar
+---
+<pre><code>    foo
+bar
+</code></pre>
+[END]
+
+[IgnorePrecedingAndTrailingBlanks]
+
+    
+    foo
+    
+---
+<pre><code>foo
+</code></pre>
+[END]
