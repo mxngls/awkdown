@@ -109,11 +109,3 @@ $0 {
 END {
   if (text) pop_block()
 }
-
-# TODO
-#
-# 0. write a small test utility [ ]
-#
-# 1. parse headers [x]
-#   - remove escape backslashes [ ]
-#   - parse empty headings correctly [x]
