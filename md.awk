@@ -53,6 +53,8 @@ function append_text(s, t) {
 BEGIN {
   text = ""
   block = "p"
+  fence = 0
+  fenced_space = 0
 }
 
 # atx headings
@@ -92,6 +94,25 @@ BEGIN {
   }
 }
 
+# fenced code block
+/^[[:blank:]]{0,3}([`]{3,}|[~]{3,})/ {
+  if (!fence) {
+    block = "code"
+    if (match($0, /^[[:blank:]]{1,3}/)) {
+      fenced_space = RLENGTH
+    }
+    if (match($0, /[`]{3,}|[~]{3,}/)) {
+      fence = substr($0, RSTART, RLENGTH)
+    }
+  } else {
+    match($0, /[`]{3,}|[~]{3,}/)
+    if (fence == substr($0, RSTART, RLENGTH)) {
+      pop_block()
+    }
+  }
+  next
+}
+
 # blank lines
 /^$/ {
   if (block == "code") append_text($0)
@@ -101,7 +122,13 @@ BEGIN {
 
 # paragraphs
 $0 {
-  if (block == "code") pop_block()
+  if (block == "code") {
+    if (fence) {
+      sub(/^[[:blank:]]{fenced_space}/, $0)
+    }
+    else pop_block()
+  }
+
   append_text($0, 1)
   next
 }
