@@ -1,15 +1,5 @@
 #!/usr/bin/awk -f
 
-function l_trim(s) {
-  sub(/^[[:blank:]]+/, "", s)
-  return s
-}
-
-function r_trim(s) {
-  sub(/[[:blank:]]+$/, "", s)
-  return s
-}
-
 function trim(s) {
   gsub(/^[[:blank:]]+|[[:blank:]]+$/, "", s)
   return s
