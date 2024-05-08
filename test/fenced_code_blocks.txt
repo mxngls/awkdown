@@ -20,3 +20,283 @@
 </code></pre>
 [END]
 
+[MatchingFence(1)]
+```
+aaa
+~~~
+```
+---
+<pre><code>aaa
+~~~
+</code></pre>
+[END]
+
+[MatchingFence(2)]
+~~~
+aaa
+```
+~~~
+---
+<pre><code>aaa
+```
+</code></pre>
+[END]
+
+[MatchingFenceLength(1)]
+````
+aaa
+```
+``````
+---
+<pre><code>aaa
+```
+</code></pre>
+[END]
+
+[MatchingFenceLength(2)]
+~~~~
+aaa
+~~~
+~~~~
+---
+<pre><code>aaa
+~~~
+</code></pre>
+[END]
+
+[UnclosedFence(1)]
+```
+---
+<pre><code></code></pre>
+[END]
+
+[UnclosedFence(2)]
+`````
+
+```
+aaa
+---
+<pre><code>```
+aaa
+</code></pre>
+[END]
+
+[EmptyLines]
+```
+
+  
+```
+---
+<pre><code>  
+</code></pre>
+[END]
+
+[EmptyBlock]
+```
+```
+---
+<pre><code></code></pre>
+[END]
+
+[RemovedIndention(1)]
+ ```
+ aaa
+aaa
+```
+---
+<pre><code>aaa
+aaa
+</code></pre>
+[END]
+
+[RemovedIndention(2)]
+  ```
+aaa
+  aaa
+aaa
+  ```
+---
+<pre><code>aaa
+aaa
+aaa
+</code></pre>
+[END]
+
+[RemovedIndention(3)]
+   ```
+   aaa
+    aaa
+  aaa
+   ```
+---
+<pre><code>aaa
+ aaa
+aaa
+</code></pre>
+[END]
+
+[FourSpacesIndentation]
+    ```
+    aaa
+    ```
+---
+<pre><code>```
+aaa
+```
+</code></pre>
+[END]
+
+[PrecedingSpaces(1)]
+```
+aaa
+  ```
+---
+<pre><code>aaa
+</code></pre>
+[END]
+
+[PrecedingSpaces(2)]
+   ```
+aaa
+  ```
+---
+<pre><code>aaa
+</code></pre>
+[END]
+
+[NotAClosingFence]
+```
+aaa
+    ```
+---
+<pre><code>aaa
+    ```
+</code></pre>
+[END]
+
+[InterceptingParagraphs]
+foo
+```
+bar
+```
+baz
+---
+<p>foo</p>
+<pre><code>bar
+</code></pre>
+<p>baz</p>
+[END]
+
+[InterceptingBlocks]
+foo
+===
+~~~
+bar
+~~~
+# baz
+---
+<h1>foo</h1>
+<pre><code>bar
+</code></pre>
+<h1>baz</h1>
+[END]
+
+[InfoString(1)]
+```ruby
+def foo(x)
+  return 3
+end
+```
+---
+<pre><code class="language-ruby">def foo(x)
+  return 3
+end
+</code></pre>
+[END]
+
+[InfoString(2)]
+~~~~    ruby startline=3 $%@#$
+def foo(x)
+  return 3
+end
+~~~~~~~
+---
+<pre><code class="language-ruby">def foo(x)
+  return 3
+end
+</code></pre>
+[END]
+
+[InfoString(3)]
+````;
+````
+---
+<pre><code class="language-;"></code></pre>
+[END]
+
+[InfoString(4)]
+``` aa ```
+foo
+---
+<p><code>aa</code>
+foo</p>
+[END]
+
+[InfoString(5)]
+~~~ aa ``` ~~~
+foo
+~~~
+---
+<pre><code class="language-aa">foo
+</code></pre>
+[END]
+
+[InfoString(6)]
+```
+``` aaa
+```
+---
+<pre><code>``` aaa
+</code></pre>
+[END]
+
+[InternalSpaces(1)]
+~~~~~~
+aaa
+~~~ ~~
+---
+<pre><code>aaa
+~~~ ~~
+</code></pre>
+[END]
+
+[InternalSpaces(2)]
+``` ```
+aaa
+---
+<p><code> </code>
+aaa</p>
+[END]
+
+
+[EnclosedByBlockquote]
+> ```
+> aaa
+
+bbb
+---
+<blockquote>
+<pre><code>aaa
+</code></pre>
+</blockquote>
+<p>bbb</p>
+[END]
+
+[InsufficientBackticks]
+``
+foo
+``
+---
+<p><code>foo</code></p>
+[END]
+
