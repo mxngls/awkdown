@@ -45,9 +45,16 @@ function push_block(nblock) {
   block = nblock
 }
 
+function escape_chrevron(s) {
+  gsub(/</, "\\&lt;", s)
+  gsub(/>/, "\\&gt;", s)
+  return s
+}
+
 function append_text(s, t) {
   s = t ? trim(s) : s
   text = text ? text "\n" s : s 
+  s = escape_chrevron(s)
 }
 
 BEGIN {

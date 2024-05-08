@@ -1,8 +1,19 @@
 [ValidSimple]
 ```
-foo
- bar
+<
+ >
 ```
+---
+<pre><code>&lt;
+ &gt;
+</code></pre>
+[END]
+
+[ValidTilde]
+~~~
+<
+ >
+~~~
 ---
 <pre><code>&lt;
  &gt;
