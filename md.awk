@@ -24,15 +24,52 @@ function parse_atx(s) {
 function parse_setext(s) {
   if (match(s, /=+/)) level = 1;
   else level = 2;
-  
+
   push_block("h" level)
+}
+
+function parse_fenced_block(s) {
+  if (!fence) {
+    # intercept paragraphs
+    if (text) pop_block()
+
+    # declare block
+    block = "code"
+
+    if (match(s, /^[[:blank:]]{1,3}/)) {
+      fenced_space = RLENGTH
+    }
+    if (match(s, /[`]{3,}|[~]{3,}/)) {
+      fence = substr(s, RSTART, RLENGTH)
+      info_string = substr(s, RSTART + RLENGTH)
+    }
+
+  } else {
+    # make sure we found a valid closing fence
+    match(s, /[`]{3,}|[~]{3,}/)
+    if (match(substr(s, RSTART, RLENGTH), fence)) {
+      fence = ""
+      pop_block()
+    } else append_text(s)
+  }
 }
 
 function pop_block() {
   if (block == "code") {
     # trim trailing blank lines
     sub(/\n+$/,"", text)
-    printf "<pre><code>%s\n</code></pre>\n", text;
+
+    # insert info string as language declaration
+    if (info_string && match(info_string, /[^[:space:]]+[[:blank:]]*/)) {
+      lang = substr(info_string, RSTART, RLENGTH)
+      sub(/[[:blank:]]*$/, "", lang)
+      printf "<pre><code class=\"language-%s\">%s%s</code></pre>\n",
+             lang,
+             text,
+             text ? "\n" : "";
+    } else printf "<pre><code>%s%s</code></pre>\n",
+           text,
+           text ? "\n" : "";
   } else {
     printf "<%s>%s</%s>\n", block, trim(text), block;
   }
@@ -52,16 +89,27 @@ function escape_chrevron(s) {
 }
 
 function append_text(s, t) {
-  s = t ? trim(s) : s
-  text = text ? text "\n" s : s 
+
+  if (fenced_space) {
+    sub("^[[:blank:]]{1," fenced_space "}", "", s)
+  } else {
+    s = t && block != "code" ? trim(s) : s
+  }
+
+  # s = match(s, /^$/) ? "\n" : s
   s = escape_chrevron(s)
+
+  text = text ? text "\n" s : s
+
 }
 
 BEGIN {
   text = ""
   block = "p"
-  fence = 0
+
+  fence = ""
   fenced_space = 0
+  info_string = ""
 }
 
 # atx headings
@@ -93,7 +141,7 @@ BEGIN {
 
 # indented code block
 /^[[:blank:]]{4,}/ {
-  if (block == "code" || text == "") {
+  if (block == "code" && !fence || text == "") {
     sub(/^[[:blank:]]{4}/, "")
     push_block("code")
     append_text($0)
@@ -102,44 +150,26 @@ BEGIN {
 }
 
 # fenced code block
-/^[[:blank:]]{0,3}([`]{3,}|[~]{3,})/ {
-  if (!fence) {
-    block = "code"
-    if (match($0, /^[[:blank:]]{1,3}/)) {
-      fenced_space = RLENGTH
-    }
-    if (match($0, /[`]{3,}|[~]{3,}/)) {
-      fence = substr($0, RSTART, RLENGTH)
-    }
-  } else {
-    match($0, /[`]{3,}|[~]{3,}/)
-    if (fence == substr($0, RSTART, RLENGTH)) {
-      pop_block()
-    }
-  }
+/^[[:blank:]]{0,3}([`]{3,}([[:blank:]]*[^`])?|[~]{3,}([[:blank:]]*[^~])?)/ {
+  parse_fenced_block($0)
   next
 }
 
-# blank lines
+# paragraphs
 /^$/ {
   if (block == "code") append_text($0)
   else if (text) pop_block();
   next
 }
 
-# paragraphs
+# text
 $0 {
-  if (block == "code") {
-    if (fence) {
-      sub(/^[[:blank:]]{fenced_space}/, $0)
-    }
-    else pop_block()
-  }
+  if (block == "code" && !fence) pop_block()
 
   append_text($0, 1)
   next
 }
 
 END {
-  if (text) pop_block()
+  if (text || block == "code") pop_block()
 }
