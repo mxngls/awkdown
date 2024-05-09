@@ -43,10 +43,15 @@ function parse_fenced_block(s) {
       fence = substr(s, RSTART, RLENGTH)
       info_string = substr(s, RSTART + RLENGTH)
     }
+    # info strings for backtick code blocks cannot contain backticks
+    if (match(fence, /`/) && match(info_string, /`/)) {
+      append_text(trim(substr(info_string, 0, RSTART - 1)))
+      reset_block()
+    }
 
   } else {
     # make sure we found a valid closing fence
-    match(s, /[`]{3,}|[~]{3,}/)
+    match(s, /([`]{3,}|[~]{3,})$/)
     if (match(substr(s, RSTART, RLENGTH), fence)) {
       fence = ""
       pop_block()
@@ -80,6 +85,14 @@ function pop_block() {
 
 function push_block(nblock) {
   block = nblock
+}
+
+function reset_block() {
+  if (fence) {
+    info_string = ""
+    fence = ""
+  }
+  push_block("p")
 }
 
 function escape_chrevron(s) {
