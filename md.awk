@@ -5,6 +5,11 @@ function trim(s) {
   return s
 }
 
+function trim_line_feed(s) {
+  gsub(/\n|\r\n|\r[^\n]/, "")
+  return s
+}
+
 function parse_atx(s) {
   s = trim(s)
   match(s,/^#+/) 
@@ -109,16 +114,46 @@ function append_text(s, t) {
     s = t && block != "code" ? trim(s) : s
   }
 
-  # s = match(s, /^$/) ? "\n" : s
-  s = escape_chrevron(s)
-
+  s = !html ? escape_chrevron(s) : s
   text = text ? text "\n" s : s
 
+}
+
+function parse_code_span(s) {
+  # if (match(s, /`+.*[^`]/)) {
+  r = substr(s, RSTART + RLENGTH)
+
+  # check for matching number of closing backticks
+  if (!match(r, /[`]+/)) {
+    return s
+  }
+  
+  if (match(r, /[`]+[^[:blank:]].*$/)) print RLENGTH
+
+  html = 1 
+
+  r = substr(r, 0, RSTART - RLENGTH)
+  
+  # strip a single leading and trailing white sapce
+  if (r) {
+    sub(/^ /, "", r)
+    sub(/ $/, "", r)
+  }
+
+  return sprintf("<code>%s</code>", trim_line_feed(r))
+}
+
+function parse_line(s, t) {
+  if (match(s, /`+/)) {
+    s = parse_code_span(s)
+  } 
+  return s
 }
 
 BEGIN {
   text = ""
   block = "p"
+  html = 0
 
   fence = ""
   fenced_space = 0
@@ -179,7 +214,10 @@ BEGIN {
 $0 {
   if (block == "code" && !fence) pop_block()
 
-  append_text($0, 1)
+  s = parse_line($0)
+
+  append_text(s, 1)
+
   next
 }
 

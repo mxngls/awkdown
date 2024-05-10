@@ -1,0 +1,17 @@
+[ValidSimple]
+`foo`
+---
+<p><code>foo</code></p>
+[END]
+
+[ContainingBacktick]
+`` foo ` bar ``
+---
+<p><code>foo ` bar</code></p>
+[END]
+
+[StripWhitespace]
+` `` `
+---
+<p><code>``</code></p>
+[END]
