@@ -1,5 +1,7 @@
 #!/usr/bin/awk -f
 
+############################### HELPERS ###############################
+
 function trim(s) {
   gsub(/^[[:blank:]]+|[[:blank:]]+$/, "", s)
   return s
@@ -9,6 +11,65 @@ function trim_line_feed(s) {
   gsub(/\n|\r\n|\r[^\n]/, "")
   return s
 }
+
+function escape_chrevron(s) {
+  gsub(/</, "\\&lt;", s)
+  gsub(/>/, "\\&gt;", s)
+  return s
+}
+
+###################### HANDLERS FOR BLOCK & TEXT ######################
+
+function pop_block() {
+  if (block == "code") {
+    # trim trailing blank lines
+    sub(/\n+$/,"", text)
+
+    # insert info string as language declaration
+    if (info_string && match(info_string, /[^[:space:]]+[[:blank:]]*/)) {
+      lang = substr(info_string, RSTART, RLENGTH)
+      sub(/[[:blank:]]*$/, "", lang)
+      printf "<pre><code class=\"language-%s\">%s%s</code></pre>\n",
+             lang,
+             text,
+             text ? "\n" : "";
+    } else printf "<pre><code>%s%s</code></pre>\n",
+           text,
+           text ? "\n" : "";
+  } else {
+    printf "<%s>%s</%s>\n", block, trim(text), block;
+  }
+
+  push_block("p")
+  text = ""
+}
+
+function push_block(nblock) {
+  block = nblock
+}
+
+function reset_block() {
+  if (fence) {
+    info_string = ""
+    fence = ""
+  }
+  push_block("p")
+}
+
+function append_text(s, t) {
+
+  if (fenced_space) {
+    sub("^[[:blank:]]{1," fenced_space "}", "", s)
+  } else {
+    s = t && block != "code" ? trim(s) : s
+  }
+
+  s = !escape ? escape_chrevron(s) : s
+  text = text ? text "\n" s : s
+
+}
+
+############################ BLOCK PARSERS ############################
 
 function parse_atx(s) {
   s = trim(s)
@@ -50,7 +111,6 @@ function parse_fenced_block(s) {
     }
     # info strings for backtick code blocks cannot contain backticks
     if (match(fence, /`/) && match(info_string, /`/)) {
-      match(s, /`+/)
       append_text(parse_code_span(s))
       reset_block()
     }
@@ -65,60 +125,7 @@ function parse_fenced_block(s) {
   }
 }
 
-function pop_block() {
-  if (block == "code") {
-    # trim trailing blank lines
-    sub(/\n+$/,"", text)
-
-    # insert info string as language declaration
-    if (info_string && match(info_string, /[^[:space:]]+[[:blank:]]*/)) {
-      lang = substr(info_string, RSTART, RLENGTH)
-      sub(/[[:blank:]]*$/, "", lang)
-      printf "<pre><code class=\"language-%s\">%s%s</code></pre>\n",
-             lang,
-             text,
-             text ? "\n" : "";
-    } else printf "<pre><code>%s%s</code></pre>\n",
-           text,
-           text ? "\n" : "";
-  } else {
-    printf "<%s>%s</%s>\n", block, trim(text), block;
-  }
-
-  push_block("p")
-  text = ""
-}
-
-function push_block(nblock) {
-  block = nblock
-}
-
-function reset_block() {
-  if (fence) {
-    info_string = ""
-    fence = ""
-  }
-  push_block("p")
-}
-
-function escape_chrevron(s) {
-  gsub(/</, "\\&lt;", s)
-  gsub(/>/, "\\&gt;", s)
-  return s
-}
-
-function append_text(s, t) {
-
-  if (fenced_space) {
-    sub("^[[:blank:]]{1," fenced_space "}", "", s)
-  } else {
-    s = t && block != "code" ? trim(s) : s
-  }
-
-  s = !escape ? escape_chrevron(s) : s
-  text = text ? text "\n" s : s
-
-}
+########################### INLINE PARSERS ############################
 
 function parse_code_span(s) {
 
@@ -158,6 +165,8 @@ function parse_line(s, t) {
   } 
   return s
 }
+
+############################ MAIN ROUTINE #############################
 
 BEGIN {
   block = "p"
