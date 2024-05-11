@@ -50,7 +50,8 @@ function parse_fenced_block(s) {
     }
     # info strings for backtick code blocks cannot contain backticks
     if (match(fence, /`/) && match(info_string, /`/)) {
-      append_text(trim(substr(info_string, 0, RSTART - 1)))
+      match(s, /`+/)
+      append_text(parse_code_span(s))
       reset_block()
     }
 
@@ -114,33 +115,41 @@ function append_text(s, t) {
     s = t && block != "code" ? trim(s) : s
   }
 
-  s = !html ? escape_chrevron(s) : s
+  s = !escape ? escape_chrevron(s) : s
   text = text ? text "\n" s : s
 
 }
 
 function parse_code_span(s) {
-  # if (match(s, /`+.*[^`]/)) {
+
+  bs = RLENGTH
   r = substr(s, RSTART + RLENGTH)
+  p = substr(s, 0, RSTART - 1)
 
-  # check for matching number of closing backticks
-  if (!match(r, /[`]+/)) {
-    return s
+  # look if any matching backticks lie further down the current line
+  while (bs > 0 && !match(r, "[^`][`]{" bs "}($|[^`]+.*$)")) {
+    match(r, /`+/)
+
+    bs = RLENGTH
+    r = substr(r, RSTART + bs)
+    p = substr(s, 0, RSTART)
   }
-  
-  if (match(r, /[`]+[^[:blank:]].*$/)) print RLENGTH
 
-  html = 1 
+  # no matching backticks found -> not a valid code span
+  if (bs < 1) return s
 
-  r = substr(r, 0, RSTART - RLENGTH)
-  
+  # save rest of line
+  tmp_r = r
+  r = substr(r, 0, RSTART)
+  t = substr(tmp_r, RSTART + bs + 1)
+
   # strip a single leading and trailing white sapce
-  if (r) {
-    sub(/^ /, "", r)
-    sub(/ $/, "", r)
-  }
+  if (match(r, /^ .*[^[:space:]]+.* $/)) gsub(/^ | $/, "", r)
 
-  return sprintf("<code>%s</code>", trim_line_feed(r))
+  # TODO: escaping still broken for links etc.
+  escape = 1 
+
+  return sprintf("%s<code>%s</code>%s", p, trim_line_feed(r), t)
 }
 
 function parse_line(s, t) {
@@ -151,10 +160,11 @@ function parse_line(s, t) {
 }
 
 BEGIN {
-  text = ""
   block = "p"
-  html = 0
+  span = ""
+  escape = 0
 
+  text = ""
   fence = ""
   fenced_space = 0
   info_string = ""

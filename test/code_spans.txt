@@ -10,8 +10,132 @@
 <p><code>foo ` bar</code></p>
 [END]
 
-[StripWhitespace]
+[StripWhitespace(1)]
 ` `` `
 ---
 <p><code>``</code></p>
 [END]
+
+[StripWhitespace(2)]
+`  ``  `
+---
+<p><code> `` </code></p>
+[END]
+
+[StripWhitespace(3)]
+` a`
+---
+<p><code> a</code></p>
+[END]
+
+[StripWhitespace(4)]
+` `
+`  `
+---
+<p><code> </code>
+<code>  </code></p>
+[END]
+
+[IncludingBacklash]
+`foo\`bar`
+---
+<p><code>foo\</code>bar`</p>
+[END]
+
+[IncludeBacktick(1)]
+``foo`bar``
+---
+<p><code>foo`bar</code></p>
+[END]
+
+[IncludeBacktick(2)]
+` foo `` bar `
+---
+<p><code>foo `` bar</code></p>
+[END]
+
+[Unmatched(1)]
+```foo``
+---
+<p>```foo``</p>
+[END]
+
+[Unmatched(2)]
+`foo
+---
+<p>`foo</p>
+[END]
+
+[Unmatched(3)]
+`foo``bar``
+---
+<p>`foo<code>bar</code></p>
+[END]
+
+[Precedence(1)]
+*foo`*`
+---
+<p>*foo<code>*</code></p>
+[END]
+
+[Precedence(2)]
+[not a `link](/foo`)
+---
+<p>[not a <code>link](/foo</code>)</p>
+[END]
+
+[Precedence(3)]
+<https://foo.bar.`baz>`
+---
+<p><a href="https://foo.bar.%60baz">https://foo.bar.`baz</a>`</p>
+[END]
+
+[Precedence(4)]
+`<https://foo.bar.`baz>`
+---
+<p><code>&lt;https://foo.bar.</code>baz&gt;`</p>
+[END]
+
+[Precedence(5)]
+`<a href="`">`
+---
+<p><code>&lt;a href=&quot;</code>&quot;&gt;`</p>
+[END]
+
+[Precedence(4)]
+<a href="`">`
+---
+<p><a href="`">`</p>
+[END]
+
+[StripWhitespace(5)]
+` b `
+---
+<p><code> b </code></p>
+[END]
+
+[LineEndings(1)]
+``
+foo
+bar  
+baz
+``
+---
+<p><code>foo bar   baz</code></p>
+[END]
+
+[LineEndings(2)]
+` `
+`  `
+---
+<p><code> </code>
+<code>  </code></p>
+[END]
+
+[LineEndings(3)]
+`foo   bar 
+baz`
+---
+<p><code>foo   bar  baz</code></p>
+[END]
+
