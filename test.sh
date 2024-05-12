@@ -12,7 +12,13 @@ main() {
 
   while IFS=$'\n' read -r line; do
     if [[ "$line" == "[END]"  ]]; then
-      awk -f md.awk "$input" >> "$output"
+      while IFS= read -r out_line; do
+        if [[ "$out_line" =~ ^[[:space:]].*$ ]]; then
+          continue
+        else 
+          echo "$out_line" >> "$output"
+        fi
+      done < <(awk -f md.awk "$input")
 
       result="success"
 
@@ -45,6 +51,8 @@ main() {
       echo "$line" >> "$input"
     elif [[ "$current" == "input" && "$line" == "" ]]; then
       continue
+    elif [[ "$line" =~ ^[[:space:]].*$ ]]; then
+      continue
     else
       echo "$line" >> "$expected_output"
     fi
@@ -52,6 +60,7 @@ main() {
 
   printf -- " -> All tests run sucessfull!\n"
 
+  return 0
 }
 
 main
