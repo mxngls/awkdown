@@ -74,6 +74,7 @@ function append_text(s, t) {
 function parse_atx(s) {
   s = trim(s)
   match(s,/^#+/) 
+  level = RLENGTH
 
   # start of heading
   # end of heading
@@ -82,8 +83,8 @@ function parse_atx(s) {
   sub(/(([[:blank:]]+#+)?[[:blank:]]*$)/, "", s)
   sub(/^#+$/, "", s)
 
-  text = s
-  push_block("h" RLENGTH)
+  text = parse_line(s)
+  push_block("h" level)
   pop_block()
 }
 
