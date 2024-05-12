@@ -128,7 +128,8 @@ function parse_fenced_block(s) {
 
 ########################### INLINE PARSERS ############################
 
-function parse_code_span(s) {
+function parse_code_span(s,	  bs, r, t, tmp_r) {
+  match(s, /^`+/)
 
   bs = RLENGTH
   r = substr(s, RSTART + RLENGTH)
@@ -157,14 +158,52 @@ function parse_code_span(s) {
   # TODO: escaping still broken for links etc.
   escape = 1 
 
+  if (p) p = parse_line(p)
+  if (t) t = parse_line(t)
+
   return sprintf("%s<code>%s</code>%s", p, trim_line_feed(r), t)
 }
 
-function parse_line(s, t) {
-  if (match(s, /`+/)) {
-    s = parse_code_span(s)
-  } 
+function parse_emphasis(s,    is_lfd, is_rfd) {
+  match(s, /^(\*|_)+)/)
+  d = substr(s, RSTART)
+  
+  is_lfd = match(s, /([[:space:]]|[[:punct:]](\*|_)+[[:punct:]])|(\*|_)+([^[:space:]]|[^[:punct:]]))/)
+  is_rfd = match(s, /[[:punct:]](\*|_)+([[:space:]]|[[:punct:]])|([^[:space:]]|[^[:punct:]])(\*|_)+/)
+
+  if (is_lfd && is_rfd) {
+  } else if (is_lfd) {
+  } else if (is_rfd) {
+  }
+
   return s
+}
+
+function parse_line(s,    c, t, res) {
+  
+  res = ""
+
+  for (i = 1; i <= length(s); i++) {
+    c = substr(s, i, 1);      # current char
+    t = substr(s, i);         # part of s from c on
+
+    # parse inline code span
+    if (c == "`") {
+      res = res parse_code_span(t)
+      i = length(res)
+    } else if (c == "*" || c == "_") {
+      # res = res c
+        
+      res = res parse_emphasis(prev_c t)
+      i = length(res)
+    
+    } else res = res c
+
+    prev_c = c
+
+  }
+
+  return res
 }
 
 ############################ MAIN ROUTINE #############################
