@@ -1,0 +1,5 @@
+[SingleLeadingAsterisk]
+*foo bar*
+---
+<p><em>foo bar</em></p>
+[END]

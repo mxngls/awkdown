@@ -164,27 +164,105 @@ function parse_code_span(s,	  bs, r, t, tmp_r) {
   return sprintf("%s<code>%s</code>%s", p, trim_line_feed(r), t)
 }
 
-function parse_emphasis(s,    is_lfd, is_rfd) {
-  match(s, /^(\*|_)+)/)
-  d = substr(s, RSTART)
-  
-  is_lfd = match(s, /([[:space:]]|[[:punct:]](\*|_)+[[:punct:]])|(\*|_)+([^[:space:]]|[^[:punct:]]))/)
-  is_rfd = match(s, /[[:punct:]](\*|_)+([[:space:]]|[[:punct:]])|([^[:space:]]|[^[:punct:]])(\*|_)+/)
-
-  if (is_lfd && is_rfd) {
-  } else if (is_lfd) {
-  } else if (is_rfd) {
+function push_delim(d, can_open, can_close, count, \
+                    idx) {
+  if (length(delims) == 1 && delims[0] == "") {
+    delims[0] = d
+    delims[0, "can_open"] = can_open
+    delims[0, "can_close"] = can_close
+    delims[0, "count"] = count
+  } else {
+    idx = length(delims)
+    delims[idx] = d
+    delims[idx, "can_open"] = can_open
+    delims[idx, "can_close"] = can_close
+    delims[idx, "count"] = count
   }
-
-  return s
 }
 
-function parse_line(s,    c, t, res) {
+function pop_delim(idx) {
+  idx = length(delims) - 1
+  delete delims[idx]
+  delete delims[idx, "can_open"]
+  delete delims[idx, "can_close"]
+  delete delims[idx, "count"]
+}
+
+function parse_emphasis(s, c, i, \
+          curr_char, \
+          prev_char, \
+          next_char, \
+          del, \
+          after_is_whitespace, \
+          after_is_punctuation, \
+          before_is_whitespace, \
+          before_is_punctuation, \
+          left_flanking, \
+          right_flanking, \
+          can_open, \
+          can_close) {
+
+  # create substring
+  str = substr(s, i)
+
+  # extract delimiters and trailing text
+  match(str, /^(\*|_)+/)
+  del = substr(str, RSTART, RLENGTH)
+  after = substr(str, RSTART + RLENGTH)
+
+  curr_char = c
+  prev_char = i == 1 ? "\n" : substr(s, i-1, 1)
+  next_char = i == (length(s)) ? "\n" : substr(s, i+1, 1)
+
+  next_is_whitespace = match(next_char, /^[[:space:]]/);
+  next_is_punctuation = match(next_char, /^[[:punct:]]/);
+  prev_is_whitespace = match(prev_char, /^[[:space:]]/);
+  prev_is_punctuation = match(prev_char, /^[[:punct:]]/);
+
+  # print "s          " s
+  # print "length(s)  " length(s)
+  # print "i          " i
+  # print "c          " c
+  # print "prev_char" prev_char
+  # print "next_char " next_char
+  # print "prev_char " prev_char "prev_is_whitespace  " prev_is_whitespace
+  # print "prev_char " prev_char "prev_is_punctuation " prev_is_punctuation
+  # print "next_char " next_char "next_is_whitespace   " next_is_whitespace
+  # print "next_char " next_char "next_is_punctuation  " next_is_punctuation
+
+  left_flanking = !next_is_whitespace && \
+    (!next_is_punctuation || \
+      prev_is_whitespace || \
+      prev_is_punctuation);
+
+  right_flanking = !prev_is_whitespace && \
+    (!prev_is_punctuation || \
+      next_is_whitespace || \
+      next_is_punctuation);
+
+  if (match(del, /^_+/)) {
+    can_open = left_flanking && (!right_flanking || prev_is_punctuation);
+    can_close = right_flanking && (!left_flanking || next_is_punctuation);
+  } else {
+      can_open = left_flanking;
+      can_close = right_flanking;
+  }
+
+  if (length(delims) > 0 && can_close) {
+  } else if (can_close && can_open || \
+      can_close && !can_open || \
+      !can_close && can_open) {
+    push_delim(del, can_open, can_close, length(del))
+  } else return parse_line(after)
+}
+
+function parse_line(s,    res, i, t, p) {
   
   res = ""
 
   for (i = 1; i <= length(s); i++) {
     c = substr(s, i, 1);      # current char
+    p = substr(s, 0, i-1);    # part of s until c
     t = substr(s, i);         # part of s from c on
 
     # parse inline code span
@@ -192,17 +270,17 @@ function parse_line(s,    c, t, res) {
       res = res parse_code_span(t)
       i = length(res)
     } else if (c == "*" || c == "_") {
-      # res = res c
-        
-      res = res parse_emphasis(prev_c t)
-      i = length(res)
-    
-    } else res = res c
+      em = parse_emphasis(s, c, i)
+      s = p em
+      res = s
+      i = i + length(em)
 
-    prev_c = c
+    } else {
+      res = res c
+    }
 
   }
-
+  
   return res
 }
 
@@ -217,7 +295,10 @@ BEGIN {
   fence = ""
   fenced_space = 0
   info_string = ""
+  delims[0] = ""
 }
+
+1
 
 # atx headings
 /^ {0,3}#{1,6}([[:blank:]]+|$)/{
