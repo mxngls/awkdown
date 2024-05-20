@@ -156,7 +156,7 @@ function parse_code_span(s,	  bs, r, t, tmp_r) {
   if (match(r, /^ .*[^[:space:]]+.* $/)) gsub(/^ | $/, "", r)
 
   # TODO: escaping still broken for links etc.
-  escape = 1 
+  escape = 1
 
   if (p) p = parse_line(p)
   if (t) t = parse_line(t)
@@ -164,71 +164,56 @@ function parse_code_span(s,	  bs, r, t, tmp_r) {
   return sprintf("%s<code>%s</code>%s", p, trim_line_feed(r), t)
 }
 
-function push_delim(d, can_open, can_close, count, \
-                    idx) {
-  if (length(delims) == 1 && delims[0] == "") {
-    delims[0] = d
-    delims[0, "can_open"] = can_open
-    delims[0, "can_close"] = can_close
-    delims[0, "count"] = count
-  } else {
-    idx = length(delims)
-    delims[idx] = d
-    delims[idx, "can_open"] = can_open
-    delims[idx, "can_close"] = can_close
-    delims[idx, "count"] = count
-  }
+function push_delim(d, can_open, can_close, pos) {
+
+    delims[delims_count] = d
+    delims[delims_count, "can_open"] = can_open
+    delims[delims_count, "can_close"] = can_close
+    delims[delims_count, "pos"] = pos
+
+    delims_count++
+
 }
 
-function pop_delim(idx) {
-  idx = length(delims) - 1
-  delete delims[idx]
-  delete delims[idx, "can_open"]
-  delete delims[idx, "can_close"]
-  delete delims[idx, "count"]
+function pop_delim() {
+
+  delete delims[delims_count]
+  delete delims[delims_count, "can_open"]
+  delete delims[delims_count, "can_close"]
+  delete delims[delims_count, "pos"]
+
+  delims_count--
+
 }
 
-function parse_emphasis(s, c, i, \
-          curr_char, \
-          prev_char, \
-          next_char, \
-          del, \
-          after_is_whitespace, \
-          after_is_punctuation, \
-          before_is_whitespace, \
-          before_is_punctuation, \
-          left_flanking, \
-          right_flanking, \
-          can_open, \
-          can_close) {
+function parse_emphasis(s, i, \
+                        prev_char, \
+                        next_char, \
+                        del, \
+                        after_is_whitespace, \
+                        after_is_punctuation, \
+                        before_is_whitespace, \
+                        before_is_punctuation, \
+                        left_flanking, \
+                        right_flanking, \
+                        can_open, \
+                        can_close) {
 
   # create substring
   str = substr(s, i)
 
-  # extract delimiters and trailing text
+  # extract delimiters
   match(str, /^(\*|_)+/)
   del = substr(str, RSTART, RLENGTH)
-  after = substr(str, RSTART + RLENGTH)
 
-  curr_char = c
-  prev_char = i == 1 ? "\n" : substr(s, i-1, 1)
-  next_char = i == (length(s)) ? "\n" : substr(s, i+1, 1)
+  # retrieve value of previous and next character
+  prev_char = i == 1 ? "\n" : substr(s, RSTART + RLENGTH - 1, 1)
+  next_char = i == (length(s)) ? "\n" : substr(s, RSTART + RLENGTH + 1, 1)
 
   next_is_whitespace = match(next_char, /^[[:space:]]/);
   next_is_punctuation = match(next_char, /^[[:punct:]]/);
   prev_is_whitespace = match(prev_char, /^[[:space:]]/);
   prev_is_punctuation = match(prev_char, /^[[:punct:]]/);
-
-  # print "s          " s
-  # print "length(s)  " length(s)
-  # print "i          " i
-  # print "c          " c
-  # print "prev_char" prev_char
-  # print "next_char " next_char
-  # print "prev_char " prev_char "prev_is_whitespace  " prev_is_whitespace
-  # print "prev_char " prev_char "prev_is_punctuation " prev_is_punctuation
-  # print "next_char " next_char "next_is_whitespace   " next_is_whitespace
-  # print "next_char " next_char "next_is_punctuation  " next_is_punctuation
 
   left_flanking = !next_is_whitespace && \
     (!next_is_punctuation || \
@@ -240,6 +225,7 @@ function parse_emphasis(s, c, i, \
       next_is_whitespace || \
       next_is_punctuation);
 
+  # determine if it is left- or right-flanking (or both)
   if (match(del, /^_+/)) {
     can_open = left_flanking && (!right_flanking || prev_is_punctuation);
     can_close = right_flanking && (!left_flanking || next_is_punctuation);
@@ -248,16 +234,30 @@ function parse_emphasis(s, c, i, \
       can_close = right_flanking;
   }
 
-  if (length(delims) > 0 && can_close) {
-  } else if (can_close && can_open || \
-      can_close && !can_open || \
-      !can_close && can_open) {
-    push_delim(del, can_open, can_close, length(del))
-  } else return parse_line(after)
+  # if the delimiter stack is not empty we retrieve it's last element
+  if (delims[delims_count - 1]) {
+    if (length(delims[delims_count - 1]) == length(del)) {
+
+      pos = delims[delims_count - 1, "pos"]
+      inner = substr(s, pos + length(del), i - pos - length(del))
+      escape = 1
+
+      # remove last element
+      pop_delim()
+
+      return substr(s, 0, pos - 1) "<em>" inner "</em>"
+    }
+  } else {
+      # add delimiter run to delimiter stack
+      push_delim(del, can_open, can_close, i)
+
+      # return everything including the delimiter run
+      return substr(s, 0, i + length(del) - 1)
+  }
 }
 
-function parse_line(s,    res, i, t, p) {
-  
+function parse_line(s,    res, i, t, p, em) {
+
   res = ""
 
   for (i = 1; i <= length(s); i++) {
@@ -268,19 +268,19 @@ function parse_line(s,    res, i, t, p) {
     # parse inline code span
     if (c == "`") {
       res = res parse_code_span(t)
+
       i = length(res)
     } else if (c == "*" || c == "_") {
-      em = parse_emphasis(s, c, i)
-      s = p em
-      res = s
-      i = i + length(em)
+
+      res = parse_emphasis(res t, i)
+      i = length(res)
 
     } else {
       res = res c
     }
 
   }
-  
+
   return res
 }
 
@@ -295,10 +295,9 @@ BEGIN {
   fence = ""
   fenced_space = 0
   info_string = ""
-  delims[0] = ""
+  delims_count = 0
+  delims[delims_count] = ""
 }
-
-1
 
 # atx headings
 /^ {0,3}#{1,6}([[:blank:]]+|$)/{
