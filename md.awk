@@ -234,26 +234,75 @@ function parse_emphasis(s, i, \
       can_close = right_flanking;
   }
 
+  match(str, /^(\*|_)+/)
+
   # if the delimiter stack is not empty we retrieve it's last element
-  if (delims[delims_count - 1]) {
-    if (length(delims[delims_count - 1]) == length(del)) {
+  if (delims[delims_count - 1] && can_close) {
+    if (length(delims[delims_count - 1]) % 2 != 0 || length(del) % 2 != 0) {
+
 
       pos = delims[delims_count - 1, "pos"]
-      inner = substr(s, pos + length(del), i - pos - length(del))
+
+      print i - pos - length(delims[delims_count - 1])
+
+      inner = substr(s, pos + length(delims[delims_count - 1]), \
+            i - pos - length(delims[delims_count - 1]))
       escape = 1
 
+      print "inner: " inner
+      print "pos: " pos
+
       # remove last element
-      pop_delim()
+      if (length(delims[delims_count - 1]) == 1) pop_delim()
+      # or trim it by one 
+      else {
+        delims[delims_count - 1] = \
+          substr(delims[delims_count - 1], 0, length(delims[delims_count - 1]) - 1)
+      }
 
-      return substr(s, 0, pos - 1) "<em>" inner "</em>"
+      del = length(del) > 1 ? substr(del, 0, 1) : ""
+
+      print "del:", del
+
+      if (del) {
+        push_delim(del, can_open, can_close, i)
+      }
+
+      print "trail:", substr(s, i + length(del) + 1)
+
+      return substr(s, 0, pos + length(delims[delims_count - 1]) - 1) "<em>" inner "</em>" parse_line(substr(s, i + length(del)))
+    } else {
+      pos = delims[delims_count - 1, "pos"]
+      inner = substr(s, pos + length(delims[delims_count - 1]), \
+            i - pos - length(delims[delims_count - 1]))
+      escape = 1
+
+      print "inner: " inner
+      
+      # remove last element
+      if (length(delims[delims_count - 1]) == 2) pop_delim()
+      # or trim it by one 
+      else {
+        delims[delims_count - 1] = \
+          substr(delims[delims_count - 1], 0, length(delims[delims_count - 1]) - 2)
+      }
+
+      del = length(del) > 2 ? substr(del, 0, 2) : ""
+      
+      if (del) {
+        push_delim(del, can_open, can_close, i)
+      }
+
+      return substr(s, 0, pos + length(delims[delims_count - 1]) - 3) "<strong>" inner "</strong>" parse_line(substr(s, i + length(del)))
     }
-  } else {
-      # add delimiter run to delimiter stack
-      push_delim(del, can_open, can_close, i)
-
-      # return everything including the delimiter run
-      return substr(s, 0, i + length(del) - 1)
   }
+
+  if (del) {
+    push_delim(del, can_open, can_close, i)
+  }
+
+  # return everything including the delimiter run
+  return substr(s, 0, i + length(del) - 1)
 }
 
 function parse_line(s,    res, i, t, p, em) {
@@ -261,6 +310,7 @@ function parse_line(s,    res, i, t, p, em) {
   res = ""
 
   for (i = 1; i <= length(s); i++) {
+    print "i: " i
     c = substr(s, i, 1);      # current char
     p = substr(s, 0, i-1);    # part of s until c
     t = substr(s, i);         # part of s from c on
@@ -273,6 +323,9 @@ function parse_line(s,    res, i, t, p, em) {
     } else if (c == "*" || c == "_") {
 
       res = parse_emphasis(res t, i)
+
+      print "res:", res
+
       i = length(res)
 
     } else {
