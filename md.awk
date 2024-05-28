@@ -18,6 +18,11 @@ function escape_chrevron(s) {
   return s
 }
 
+function escape_quotes(s) {
+  gsub(/"/, "\\&quot;", s)
+  return s
+}
+
 ###################### HANDLERS FOR BLOCK & TEXT ######################
 
 function pop_block() {
@@ -63,7 +68,7 @@ function append_text(s, t) {
   } else {
     s = t && block != "code" ? trim(s) : s
   }
-
+  s = escape_quotes(s)
   s = !escape ? escape_chrevron(s) : s
   text = text ? text "\n" s : s
 
