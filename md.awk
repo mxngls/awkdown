@@ -171,23 +171,23 @@ function parse_code_span(s,	  bs, r, t, tmp_r) {
 
 function push_delim(d, can_open, can_close, pos) {
 
-    delims[delims_count] = d
-    delims[delims_count, "can_open"] = can_open
-    delims[delims_count, "can_close"] = can_close
-    delims[delims_count, "pos"] = pos
+  delims[delims_count] = d
+  delims[delims_count, "can_open"] = can_open
+  delims[delims_count, "can_close"] = can_close
+  delims[delims_count, "pos"] = pos
 
-    delims_count++
+  delims_count++
 
 }
 
 function pop_delim() {
 
+  delims_count--
+
   delete delims[delims_count]
   delete delims[delims_count, "can_open"]
   delete delims[delims_count, "can_close"]
   delete delims[delims_count, "pos"]
-
-  delims_count--
 
 }
 
@@ -202,7 +202,11 @@ function parse_emphasis(s, i, \
                         left_flanking, \
                         right_flanking, \
                         can_open, \
-                        can_close) {
+                        can_close, \
+                        head, \
+                        inner, \
+                        trail, \
+                        res) {
 
   # create substring
   str = substr(s, i)
@@ -212,8 +216,8 @@ function parse_emphasis(s, i, \
   del = substr(str, RSTART, RLENGTH)
 
   # retrieve value of previous and next character
-  prev_char = i == 1 ? "\n" : substr(s, RSTART + RLENGTH - 1, 1)
-  next_char = i == (length(s)) ? "\n" : substr(s, RSTART + RLENGTH + 1, 1)
+  prev_char = i == 1 ? "\n" : substr(s, i - 1, 1)
+  next_char = i + RLENGTH - 1 == (length(s)) ? "\n" : substr(s, i + RLENGTH, 1)
 
   next_is_whitespace = match(next_char, /^[[:space:]]/);
   next_is_punctuation = match(next_char, /^[[:punct:]]/);
@@ -242,67 +246,66 @@ function parse_emphasis(s, i, \
   match(str, /^(\*|_)+/)
 
   # if the delimiter stack is not empty we retrieve it's last element
-  if (delims[delims_count - 1] && can_close) {
-    if (length(delims[delims_count - 1]) % 2 != 0 || length(del) % 2 != 0) {
-
+  if (delims[delims_count - 1] && can_close && substr(del, 1, 1) == substr(delims[delims_count - 1], 1, 1)) {
+    if (length(delims[delims_count - 1]) > 1 && length(del) % 2 == 0) {
 
       pos = delims[delims_count - 1, "pos"]
-
-      print i - pos - length(delims[delims_count - 1])
-
       inner = substr(s, pos + length(delims[delims_count - 1]), \
             i - pos - length(delims[delims_count - 1]))
       escape = 1
 
-      print "inner: " inner
-      print "pos: " pos
+
 
       # remove last element
-      if (length(delims[delims_count - 1]) == 1) pop_delim()
-      # or trim it by one 
+      if (length(delims[delims_count - 1]) == 2) {
+        head = substr(s, 1, pos - 1)
+        trail = substr(s, i + 2)
+        pop_delim()
+      # or trim it by one
+      } else {
+        delims[delims_count - 1] = \
+          substr(delims[delims_count - 1], 0, length(delims[delims_count - 1]) - 2)
+        head = substr(s, 1, pos - 1 + length(delims[delims_count - 1]))
+        trail = substr(s, i + length(delims[delims_count - 1]))
+      }
+
+      if (delims[delims_count - 1] && can_open && i != delims[delims_count - 1, "pos"]) {
+        push_delim(del, can_open, can_close, i)
+      }
+
+      res = head "<strong>" inner "</strong>" trail
+      return parse_line(res)
+    } else {
+      pos = delims[delims_count - 1, "pos"]
+      inner = substr(s, pos + length(delims[delims_count - 1]), i - pos - length(delims[delims_count - 1]))
+      escape = 1
+
+      # remove last element
+      if (length(delims[delims_count - 1]) == 1) {
+        head = substr(s, 1, pos - 1)
+        trail = substr(s, i + 1)
+        pop_delim()
+      }
+      # or trim it by one
       else {
         delims[delims_count - 1] = \
           substr(delims[delims_count - 1], 0, length(delims[delims_count - 1]) - 1)
+        delims[delims_count - 1, "pos"] = delims[delims_count - 1, "pos"] - 1
+        head = substr(s, 1, pos - 1 + length(delims[delims_count - 1]))
+        trail = substr(s, i + length(delims[delims_count - 1]))
       }
 
-      del = length(del) > 1 ? substr(del, 0, 1) : ""
-
-      print "del:", del
-
-      if (del) {
+      if (delims[delims_count - 1] && can_open && i != delims[delims_count - 1, "pos"]) {
         push_delim(del, can_open, can_close, i)
       }
 
-      print "trail:", substr(s, i + length(del) + 1)
+      res = head "<em>" inner "</em>" trail
+      return parse_line(res)
 
-      return substr(s, 0, pos + length(delims[delims_count - 1]) - 1) "<em>" inner "</em>" parse_line(substr(s, i + length(del)))
-    } else {
-      pos = delims[delims_count - 1, "pos"]
-      inner = substr(s, pos + length(delims[delims_count - 1]), \
-            i - pos - length(delims[delims_count - 1]))
-      escape = 1
-
-      print "inner: " inner
-      
-      # remove last element
-      if (length(delims[delims_count - 1]) == 2) pop_delim()
-      # or trim it by one 
-      else {
-        delims[delims_count - 1] = \
-          substr(delims[delims_count - 1], 0, length(delims[delims_count - 1]) - 2)
-      }
-
-      del = length(del) > 2 ? substr(del, 0, 2) : ""
-      
-      if (del) {
-        push_delim(del, can_open, can_close, i)
-      }
-
-      return substr(s, 0, pos + length(delims[delims_count - 1]) - 3) "<strong>" inner "</strong>" parse_line(substr(s, i + length(del)))
     }
   }
 
-  if (del) {
+  if (del && can_open && i != delims[delims_count - 1, "pos"]) {
     push_delim(del, can_open, can_close, i)
   }
 
@@ -315,7 +318,6 @@ function parse_line(s,    res, i, t, p, em) {
   res = ""
 
   for (i = 1; i <= length(s); i++) {
-    print "i: " i
     c = substr(s, i, 1);      # current char
     p = substr(s, 0, i-1);    # part of s until c
     t = substr(s, i);         # part of s from c on
@@ -329,14 +331,11 @@ function parse_line(s,    res, i, t, p, em) {
 
       res = parse_emphasis(res t, i)
 
-      print "res:", res
-
       i = length(res)
 
     } else {
       res = res c
     }
-
   }
 
   return res
@@ -410,11 +409,7 @@ BEGIN {
 # text
 $0 {
   if (block == "code" && !fence) pop_block()
-
-  s = parse_line($0)
-
-  append_text(s, 1)
-
+  append_text($0, 1)
   next
 }
 

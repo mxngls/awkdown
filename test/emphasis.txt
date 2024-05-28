@@ -3,3 +3,365 @@
 ---
 <p><em>foo bar</em></p>
 [END]
+
+[WhitespaceFollowingOpening]
+a * foo bar*
+---
+<p>a * foo bar*</p>
+[END]
+
+[InvalidLeftFlankingDelimter(1)]
+a*"foo"*
+---
+<p>a*&quot;foo&quot;*</p>
+[END]
+
+[UnicodeNonBreakingSpace]
+* a *
+---
+<p>* a *</p>
+[END]
+
+[IntraWordEmphasis(1)]
+foo*bar*
+---
+<p>foo<em>bar</em></p>
+[END]
+
+[IntraWordEmphasis(2)]
+5*6*78
+---
+<p>5<em>6</em>78</p>
+[END]
+
+[SingleLeadingUnderscore]
+_foo bar_
+---
+<p><em>foo bar</em></p>
+[END]
+
+[InvalidIntraWordEmphasis(1)]
+a_"foo"_
+---
+<p>a_&quot;foo&quot;_</p>
+[END]
+
+[InvalidIntraWordEmphasis(2)]
+foo_bar_
+---
+<p>foo_bar_</p>
+[END]
+
+[InvalidIntraWordEmphasis(3)]
+5_6_78
+---
+<p>5_6_78</p>
+[END]
+
+[InvalidIntraWordEmphasis(5)]
+aa_"bb"_cc
+---
+<p>aa_&quot;bb&quot;_cc</p>
+[END]
+
+[IntraWordEmphasis(3)]
+foo-_(bar)_
+---
+<p>foo-<em>(bar)</em></p>
+[END]
+
+[NonMatchingDelimiter]
+_foo*
+---
+<p>_foo*</p>
+[END]
+
+[WhitespacePrecedingClosingDelimiter(1)]
+*foo bar *
+---
+<p>*foo bar *</p>
+[END]
+
+[LineEndingIsWhitespace]
+*foo bar
+*
+---
+<p>*foo bar
+*</p>
+[END]
+
+[InvalidRightFlankingDelimiter(1)]
+*(*foo)
+---
+<p>*(*foo)</p>
+[END]
+
+[InvalidRightFlankingDelimiter(2)]
+*(*foo*)*
+---
+<p><em>(<em>foo</em>)</em></p>
+[END]
+
+[IntraWordEmphasis(4)]
+*foo*bar
+---
+<p><em>foo</em>bar</p>
+[END]
+
+[WhitespacePrecedingClosingDelimiter(2)]
+_foo bar _
+---
+<p>_foo bar _</p>
+[END]
+
+[InvalidIntraWordEmphasis(6)]
+_(_foo)
+---
+<p>_(_foo)</p>
+[END]
+
+[NestedEmphasis(1)]
+_(_foo_)_
+---
+<p><em>(<em>foo</em>)</em></p>
+[END]
+
+[NestedEmphasis(2)]
+_foo_bar_baz_
+---
+<p><em>foo_bar_baz</em></p>
+[END]
+
+[IntraWordEmphasis(5)]
+_(bar)_.
+---
+<p><em>(bar)</em>.</p>
+[END]
+
+[InvalidStrongEmphasis(1)]
+** foo bar**
+---
+<p>** foo bar**</p>
+[END]
+
+[InvalidStrongEmphasis(2)]
+a**"foo"**
+---
+<p>a**&quot;foo&quot;**</p>
+[END]
+
+[IntraWordStrongEmphasis(1)]
+foo**bar**
+---
+<p>foo<strong>bar</strong></p>
+[END]
+
+[IntraWordStrongEmphasis(2)]
+__foo bar__
+---
+<p><strong>foo bar</strong></p>
+[END]
+
+[InvalidStrongEmphasis(3)]
+__ foo bar__
+---
+<p>__ foo bar__</p>
+[END]
+
+[LineEndingEqualsWhitespace]
+__
+foo bar__
+---
+<p>__
+foo bar__</p>
+[END]
+
+[InvalidStrongEmphasis(4)]
+a__"foo"__
+---
+<p>a__&quot;foo&quot;__</p>
+[END]
+
+[InvalidIntraWordStrongEmphasis(1)]
+foo__bar__
+---
+<p>foo__bar__</p>
+[END]
+
+[InvalidIntraWordStrongEmphasis(2)]
+5__6__78
+---
+<p>5__6__78</p>
+[END]
+
+[InvalidIntraWordStrongEmphasis(3)]
+пристаням__стремятся__
+---
+<p>пристаням__стремятся__</p>
+[END]
+
+[InvalidIntraWordStrongEmphasis(4)]
+__foo, __bar__, baz__
+---
+<p><strong>foo, <strong>bar</strong>, baz</strong></p>
+[END]
+
+[IntraWordStrongEmphasis(3)]
+foo-__(bar)__
+---
+<p>foo-<strong>(bar)</strong></p>
+[END]
+
+[InvalidStrongEmphasis(5)]
+**foo bar **
+---
+<p>**foo bar **</p>
+[END]
+
+[InvalidStrongEmphasis(6)]
+**(**foo)
+---
+<p>**(**foo)</p>
+[END]
+
+[IntraWordStrongEmphasis(4)]
+*(**foo**)*
+---
+<p><em>(<strong>foo</strong>)</em></p>
+[END]
+
+[IntraWordStrongEmphasis(5)]
+**Gomphocarpus (*Gomphocarpus physocarpus*, syn.
+*Asclepias physocarpa*)**
+---
+<p><strong>Gomphocarpus (<em>Gomphocarpus physocarpus</em>, syn.
+<em>Asclepias physocarpa</em>)</strong></p>
+[END]
+
+[IntraWordStrongEmphasis(6)]
+**foo "*bar*" foo**
+---
+<p><strong>foo &quot;<em>bar</em>&quot; foo</strong></p>
+[END]
+
+[IntraWordStrongEmphasis(7)]
+**foo**bar
+---
+<p><strong>foo</strong>bar</p>
+[END]
+
+[InvalidStrongEmphasis(7)]
+__foo bar __
+---
+<p>__foo bar __</p>
+[END]
+
+[InvalidStrongEmphasis(8)]
+__(__foo)
+---
+<p>__(__foo)</p>
+[END]
+
+[IntraWordStrongEmphasis(8)]
+_(__foo__)_
+---
+<p><em>(<strong>foo</strong>)</em></p>
+[END]
+
+[InvalidStrongEmphasis(9)]
+__foo__bar
+---
+<p>__foo__bar</p>
+[END]
+
+[InvalidIntraWordStrongEmphasis(5)]
+__foo__bar__baz__
+---
+<p><strong>foo__bar__baz</strong></p>
+[END]
+
+[IntraWordStrongEmphasis(9)]
+__(bar)__.
+---
+<p><strong>(bar)</strong>.</p>
+[END]
+
+[MultilineEmphasis]
+*foo
+bar*
+---
+<p><em>foo
+bar</em></p>
+[END]
+
+[NestedEmphasis(3)]
+_foo __bar__ baz_
+---
+<p><em>foo <strong>bar</strong> baz</em></p>
+[END]
+
+[NestedEmphasis(4)]
+_foo _bar_ baz_
+---
+<p><em>foo <em>bar</em> baz</em></p>
+[END]
+
+[NestedEmphasis(5)]
+__foo_ bar_
+---
+<p><em><em>foo</em> bar</em></p>
+[END]
+
+[NestedEmphasis(6)]
+*foo *bar**
+---
+<p><em>foo <em>bar</em></em></p>
+[END]
+
+[NestedEmphasis(7)]
+*foo **bar** baz*
+---
+<p><em>foo <strong>bar</strong> baz</em></p>
+[END]
+
+[NestedEmphasis(8)]
+*foo**bar**baz*
+---
+<p><em>foo<strong>bar</strong>baz</em></p>
+[END]
+
+[EmphasisContainingOthers]
+*foo [bar](/url)*
+---
+<p><em>foo <a href="/url">bar</a></em></p>
+[END]
+
+[InvalidIntraWordStrongEmphasis(6)]
+__пристаням__стремятся
+---
+<p>__пристаням__стремятся</p>
+[END]
+
+[InvalidIntraWordEmphasis(4)]
+пристаням_стремятся_
+---
+<p>пристаням_стремятся_</p>
+[END]
+
+[InvalidIntraWordEmphasis(5)]
+_пристаням_стремятся
+---
+<p>_пристаням_стремятся</p>
+[END]
+
+[UnicodeSymbolsArePunctuation]
+*$*alpha.
+
+*£*bravo.
+
+*€*charlie.
+---
+<p>*$*alpha.</p>
+<p>*£*bravo.</p>
+<p>*€*charlie.</p>
+[END]
