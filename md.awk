@@ -1,6 +1,6 @@
 #!/usr/bin/awk -f
 
-############################### HELPERS ###############################
+# ------------------------------- HELPERS -----------------------------
 
 function trim(s) {
   gsub(/^[[:blank:]]+|[[:blank:]]+$/, "", s)
@@ -23,7 +23,7 @@ function escape_quotes(s) {
   return s
 }
 
-###################### HANDLERS FOR BLOCK & TEXT ######################
+# -------------------- HANDLERS FOR BLOCK & TEXT ----------------------
 
 function pop_block() {
   if (block == "code") {
@@ -74,7 +74,7 @@ function append_text(s, t) {
 
 }
 
-############################ BLOCK PARSERS ############################
+# -------------------------- BLOCK PARSERS ----------------------------
 
 function parse_atx(s) {
   s = trim(s)
@@ -131,7 +131,7 @@ function parse_fenced_block(s) {
   }
 }
 
-########################### INLINE PARSERS ############################
+# -------------------------- INLINE PARSERS ---------------------------
 
 function parse_code_span(s,	  bs, r, t, tmp_r) {
   match(s, /^`+/)
@@ -350,7 +350,7 @@ function parse_line(s, b, \
   return res
 }
 
-############################ MAIN ROUTINE #############################
+# --------------------------- MAIN ROUTINE ----------------------------
 
 BEGIN {
   block = "p"
