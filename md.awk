@@ -42,7 +42,7 @@ function pop_block() {
            text,
            text ? "\n" : "";
   } else {
-    printf "<%s>%s</%s>\n", block, trim(text), block;
+    printf "<%s>%s</%s>\n", block, trim(parse_line(text)), block;
   }
 
   push_block("p")
@@ -166,7 +166,7 @@ function parse_code_span(s,	  bs, r, t, tmp_r) {
   if (p) p = parse_line(p)
   if (t) t = parse_line(t)
 
-  return sprintf("%s<code>%s</code>%s", p, trim_line_feed(r), t)
+  return p "<code>" trim_line_feed(r) "</code>" t
 }
 
 function push_delim(d, can_open, can_close, pos) {
