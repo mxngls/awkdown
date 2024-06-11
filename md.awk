@@ -192,6 +192,7 @@ function pop_delim() {
 }
 
 function parse_emphasis(s, i, \
+                        str, \
                         prev_char, \
                         next_char, \
                         del, \
@@ -203,19 +204,19 @@ function parse_emphasis(s, i, \
                         right_flanking, \
                         can_open, \
                         can_close, \
+                        level, \
                         head, \
                         inner, \
                         trail, \
-                        res) {
-
-  # create substring
-  str = substr(s, i)
+                        res, \
+                        tmp_res) {
 
   # extract delimiters
-  match(str, /^(\*|_)+/)
+  str = substr(s, i)
+  match(str, /^(\*+|_+)/)
+
   del = substr(str, RSTART, RLENGTH)
 
-  # retrieve value of previous and next character
   prev_char = i == 1 ? "\n" : substr(s, i - 1, 1)
   next_char = i + RLENGTH - 1 == (length(s)) ? "\n" : substr(s, i + RLENGTH, 1)
 
@@ -234,7 +235,6 @@ function parse_emphasis(s, i, \
       next_is_whitespace || \
       next_is_punctuation);
 
-  # determine if it is left- or right-flanking (or both)
   if (match(del, /^_+/)) {
     can_open = left_flanking && (!right_flanking || prev_is_punctuation);
     can_close = right_flanking && (!left_flanking || next_is_punctuation);
@@ -243,69 +243,68 @@ function parse_emphasis(s, i, \
       can_close = right_flanking;
   }
 
-  match(str, /^(\*|_)+/)
+  n = delims_count > 0 ? delims_count - 1 : delims_count
+  res = s
 
-  # if the delimiter stack is not empty we retrieve it's last element
-  if (delims[delims_count - 1] && can_close && substr(del, 1, 1) == substr(delims[delims_count - 1], 1, 1)) {
-    if (length(delims[delims_count - 1]) > 1 && length(del) % 2 == 0) {
+  # if the delimiter stack is not empty we look for possible matching
+  # opening delimiter runs
+  do {
 
-      pos = delims[delims_count - 1, "pos"]
-      inner = substr(s, pos + length(delims[delims_count - 1]), \
-            i - pos - length(delims[delims_count - 1]))
+    if (i > pos \
+        && del \
+        && delims[n] \
+        && can_close \
+        && substr(del, 1, 1) == substr(delims[n], 1, 1)) {
+
+      pos = delims[n, "pos"]
+
+      # check for special cases of intra-word emphasis
+      if (delims[n] && ((delims[n, "can_open"] && delims[n, "can_close"]) ||
+           (can_open && can_close)) &&
+          (length(delims[n]) + length(del)) % 3 == 0 &&
+          (length(delims[n]) % 3 != 0 || length(del) % 3 != 0)) {
+          continue
+      }
+
+      if (length(delims[n]) > 1 && length(del) > 1) level = 2;
+      else level = 1
+
+      inner = substr(res, pos + length(delims[n]), \
+            i - pos - length(delims[n]))
       escape = 1
 
-
-
-      # remove last element
-      if (length(delims[delims_count - 1]) == 2) {
-        head = substr(s, 1, pos - 1)
-        trail = substr(s, i + 2)
+      # remove the last emphasis mark from the stack
+      if (length(delims[n]) == level) {
+        head = substr(res, 1, pos - 1)
+        trail = substr(res, i + level)
         pop_delim()
-      # or trim it by one
+      # or trim it
       } else {
-        delims[delims_count - 1] = \
-          substr(delims[delims_count - 1], 0, length(delims[delims_count - 1]) - 2)
-        head = substr(s, 1, pos - 1 + length(delims[delims_count - 1]))
-        trail = substr(s, i + length(delims[delims_count - 1]))
+        delims[n] = substr(delims[n], 1, length(delims[n]) - level)
+        head = substr(res, 1, pos - 1 + length(delims[n]))
+        trail = substr(res, i + level)
       }
 
-      if (delims[delims_count - 1] && can_open && i != delims[delims_count - 1, "pos"]) {
-        push_delim(del, can_open, can_close, i)
+      del = substr(del, 1, length(del) - level)
+
+      tmp_res = res
+      res = level == 2 \
+        ? (head "<strong>" inner "</strong>" trail) \
+        : (head "<em>" inner "</em>" trail)
+      
+      i += length(res) - length(tmp_res) + level
+
+      if (del && delims[n]) {
+        n++
+        continue 
       }
 
-      res = head "<strong>" inner "</strong>" trail
-      return parse_line(res)
-    } else {
-      pos = delims[delims_count - 1, "pos"]
-      inner = substr(s, pos + length(delims[delims_count - 1]), i - pos - length(delims[delims_count - 1]))
-      escape = 1
-
-      # remove last element
-      if (length(delims[delims_count - 1]) == 1) {
-        head = substr(s, 1, pos - 1)
-        trail = substr(s, i + 1)
-        pop_delim()
-      }
-      # or trim it by one
-      else {
-        delims[delims_count - 1] = \
-          substr(delims[delims_count - 1], 0, length(delims[delims_count - 1]) - 1)
-        delims[delims_count - 1, "pos"] = delims[delims_count - 1, "pos"] - 1
-        head = substr(s, 1, pos - 1 + length(delims[delims_count - 1]))
-        trail = substr(s, i + length(delims[delims_count - 1]))
-      }
-
-      if (delims[delims_count - 1] && can_open && i != delims[delims_count - 1, "pos"]) {
-        push_delim(del, can_open, can_close, i)
-      }
-
-      res = head "<em>" inner "</em>" trail
-      return parse_line(res)
-
+      if (i > length(res)) return parse_line(res, length(res))
+      else return parse_line(res, i)
     }
-  }
+  } while(del && --n >= 0)
 
-  if (del && can_open && i != delims[delims_count - 1, "pos"]) {
+  if (del && can_open) {
     push_delim(del, can_open, can_close, i)
   }
 
@@ -313,26 +312,36 @@ function parse_emphasis(s, i, \
   return substr(s, 0, i + length(del) - 1)
 }
 
-function parse_line(s,    res, i, t, p, em) {
+function parse_line(s, b, \
+                    res, i, t, p, em) {
 
-  res = ""
+  # Reuse already parsed input if available
+  if (b) {
+    i = b - 1
+    res = substr(s, 1, i)
+  } else {
+    i = 0
+    res = ""
+  }
 
-  for (i = 1; i <= length(s); i++) {
-    c = substr(s, i, 1);      # current char
-    p = substr(s, 0, i-1);    # part of s until c
-    t = substr(s, i);         # part of s from c on
+  t = substr(s, i)    # part of s from c on
 
+  while (++i <= length(res t)) {
+
+    c = substr(s, i, 1) # current char
+    t = substr(s, i)    # part of s from c on
+
+    # account for escaped characters
+    if (c == "\\") {
+      res = res substr(t, i + 1, 1)
     # parse inline code span
-    if (c == "`") {
+    } else if (c == "`") {
       res = res parse_code_span(t)
-
       i = length(res)
+    # parse emphasis
     } else if (c == "*" || c == "_") {
-
       res = parse_emphasis(res t, i)
-
       i = length(res)
-
     } else {
       res = res c
     }
